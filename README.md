@@ -9,7 +9,7 @@ An intelligent study assistant and gap analysis engine built to track error patt
 ## ✨ Core Features & Modules
 
 ### 🛡️ Core Diagnostic & Academic Tools
-* **Mistake Vault (For every type of student,with every curriculum):** Diagnostic error logging that analyzes root causes, classifies conceptual traps, maps examiner mark schemes (`[M1/A1/B1]`), and generates targeted re-quizzes to reclaim missed marks.
+* **Mistake Vault (For every type of student,with every curriculum):** Diagnostic error logging that analyzes root causes, classifies conceptual traps, and explain the markimg criteria of every curriculum in great depth and generates targeted re-quizzes to reclaim missed marks.
 * **Lecture Recorder & Note Summarizer:** Real-time speech-to-text audio recorder that transcribes live classroom lectures, automatically logs quiz mistakes directly to the Mistake Vault, and turns raw notes into structured study concepts.
 * **Adaptive Progress & Pacing Analytics:** Real-time syllabus and exam pacing tracker. Calculates required study speed leading up to exam dates and delivers targeted recommendations for weak topics.
 * **Flashcards & Active Recall Studio:** High-yield active recall tool with built-in spaced repetition scheduling and an instant **AI Deck Generator**.
