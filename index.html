@@ -40,3 +40,814 @@
     <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #f5f3ff;
+    /* Soft ambient aura background */
+    background-image: 
+      radial-gradient(at 0% 0%, #e0e7ff 0%, #ede9fe 40%, transparent 75%),
+      radial-gradient(at 100% 0%, #cffafe 0%, #e0f2fe 45%, transparent 75%),
+      radial-gradient(at 50% 100%, #e0e7ff 0%, #fce7f3 40%, #cffafe 90%),
+      radial-gradient(at 8% 70%, #d1fae5 0%, transparent 45%),
+      radial-gradient(at 92% 70%, #ffedd5 0%, transparent 45%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .font-serif-accent {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+/* Bold Neon Accents & Visual Utility Styles */
+.neon-violet {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+  box-shadow: 0 10px 25px -4px rgba(124, 58, 237, 0.35);
+}
+
+.neon-pink {
+  background: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
+  box-shadow: 0 10px 25px -4px rgba(236, 72, 153, 0.35);
+}
+
+.neon-mint {
+  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+  box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.32);
+}
+
+.neon-orange {
+  background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+  box-shadow: 0 10px 25px -4px rgba(249, 115, 22, 0.35);
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.08), 0 4px 12px rgba(15, 23, 42, 0.03);
+}
+
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 28px -10px rgba(99, 102, 241, 0.07), 0 2px 6px rgba(15, 23, 42, 0.02);
+}
+
+.glass-subtle {
+  background-color: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.glass-input {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+/* Modern Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(165, 180, 252, 0.5);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.8);
+}
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+import React, { useState, useEffect } from 'react';
+import { Header, TabType } from './components/Header';
+import { StudentDashboard } from './components/StudentDashboard';
+import { MistakeVault } from './components/MistakeVault';
+import { LectureRecorder } from './components/LectureRecorder';
+import { AdaptivePacingAnalytics } from './components/AdaptivePacingAnalytics';
+import { FlashcardsStudio } from './components/FlashcardsStudio';
+import { TaskPlanner } from './components/TaskPlanner';
+import { FocusSessions } from './components/FocusSessions';
+import { WritingAssistant } from './components/WritingAssistant';
+import { ChatAdvisor } from './components/ChatAdvisor';
+import { MoodSchedulePlanner } from './components/MoodSchedulePlanner';
+import { JournalModule } from './components/JournalModule';
+import { ExtracurricularAdvisor } from './components/ExtracurricularAdvisor';
+import { MotivationRescue } from './components/MotivationRescue';
+import { MoodTrendChart } from './components/MoodTrendChart';
+import { GamificationModal } from './components/GamificationModal';
+import { ExportDataModal } from './components/ExportDataModal';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { NotificationToast } from './components/NotificationToast';
+import { OfflineBanner } from './components/PWAInstallButton';
+import { MoodType } from './types';
+import { getInitialGamificationState, GamificationState } from './utils/gamification';
+import {
+  getScheduledNotifications,
+  saveScheduledNotifications,
+  sendEncouragingNotification
+} from './utils/notificationService';
+import { X } from 'lucide-react';
+
+export default function App() {
+  const [currentMood, setCurrentMood] = useState<MoodType>(() => {
+    const saved = localStorage.getItem('aura_selected_mood');
+    return (saved as MoodType) || 'neutral';
+  });
+
+  const [energyLevel, setEnergyLevel] = useState<number>(() => {
+    const saved = localStorage.getItem('aura_energy_level');
+    return saved ? Number(saved) : 6;
+  });
+
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = localStorage.getItem('errorlens_active_tab') || localStorage.getItem('studypulse_active_tab');
+    return (saved as TabType) || 'dashboard';
+  });
+  const [showTrendChart, setShowTrendChart] = useState<boolean>(false);
+  const [injectedPrompt, setInjectedPrompt] = useState<string | null>(null);
+  const [journalPrompt, setJournalPrompt] = useState<string | null>(null);
+  const [focusTask, setFocusTask] = useState<string>('');
+  const [flashcardTopic, setFlashcardTopic] = useState<string>('');
+  const [isGamificationOpen, setIsGamificationOpen] = useState<boolean>(false);
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
+  const [gamificationState, setGamificationState] = useState<GamificationState>(getInitialGamificationState);
+
+  // Sync state to local storage
+  useEffect(() => {
+    localStorage.setItem('aura_selected_mood', currentMood);
+  }, [currentMood]);
+
+  useEffect(() => {
+    localStorage.setItem('aura_energy_level', energyLevel.toString());
+  }, [energyLevel]);
+
+  useEffect(() => {
+    localStorage.setItem('errorlens_active_tab', activeTab);
+    localStorage.setItem('studypulse_active_tab', activeTab);
+  }, [activeTab]);
+
+  // Listen for Service Worker notification click messages
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      const handleSWMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'STUDYPULSE_NOTIFICATION_CLICK' || event.data?.type === 'ERRORLENS_NOTIFICATION_CLICK') {
+          const { tab, taskTitle } = event.data;
+          if (tab) setActiveTab(tab as TabType);
+          if (taskTitle) setFocusTask(taskTitle);
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleSWMessage);
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+      };
+    }
+  }, []);
+
+  // Background timer to check and trigger scheduled notifications
+  useEffect(() => {
+    const checkScheduledInterval = setInterval(() => {
+      const list = getScheduledNotifications();
+      if (list.length === 0) return;
+
+      const now = Date.now();
+      let hasTriggered = false;
+      const remaining = list.filter((item) => {
+        if (!item.sent && item.scheduledTimestamp <= now) {
+          sendEncouragingNotification(item.mood, item.energyLevel, { title: item.taskTitle || '' }, {
+            customTitle: item.title,
+            customBody: item.body,
+          });
+          hasTriggered = true;
+          return false; // remove after sending
+        }
+        return true;
+      });
+
+      if (hasTriggered) {
+        saveScheduledNotifications(remaining);
+      }
+    }, 8000);
+
+    return () => clearInterval(checkScheduledInterval);
+  }, []);
+
+  // Real-time gamification listener
+  useEffect(() => {
+    const handleGamificationUpdated = (e: any) => {
+      if (e.detail) {
+        setGamificationState(e.detail);
+      } else {
+        setGamificationState(getInitialGamificationState());
+      }
+    };
+    window.addEventListener('aura_gamification_updated', handleGamificationUpdated);
+    return () => window.removeEventListener('aura_gamification_updated', handleGamificationUpdated);
+  }, []);
+
+  const handleNavigateToChatWithPrompt = (prompt: string) => {
+    setActiveTab('chat');
+    setInjectedPrompt(prompt);
+  };
+
+  const handleNavigateToJournalWithPrompt = (prompt: string) => {
+    setJournalPrompt(prompt);
+    setActiveTab('journal');
+  };
+
+  const handleNavigateToFocusWithTask = (task: string) => {
+    setFocusTask(task);
+    setActiveTab('focus');
+  };
+
+  const handleNavigateToFlashcardsWithTopic = (topic: string) => {
+    setFlashcardTopic(topic);
+    setActiveTab('flashcards');
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col text-slate-800 selection:bg-blue-100 selection:text-blue-900 relative overflow-x-hidden bg-slate-50/50">
+      {/* Ambient background glow effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-8%] left-[-4%] w-[45vw] h-[45vw] rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-slate-200/50 blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-emerald-100/30 blur-3xl" />
+      </div>
+
+      <OfflineBanner />
+
+      <Header
+        currentMood={currentMood}
+        onSelectMood={setCurrentMood}
+        energyLevel={energyLevel}
+        onChangeEnergy={setEnergyLevel}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        showTrendChart={showTrendChart}
+        onToggleTrendChart={() => setShowTrendChart((prev) => !prev)}
+        onOpenGamification={() => setIsGamificationOpen(true)}
+        onOpenExport={() => setIsExportOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+      />
+
+      <main className="flex-1 pb-10">
+        {/* Global Expandable 7-Day Trend Banner */}
+        {showTrendChart && (
+          <div className="max-w-4xl mx-auto px-2 sm:px-4 pt-4 pb-2 animate-in fade-in slide-in-from-top-2 duration-200 relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowTrendChart(false)}
+                className="absolute top-4 right-4 z-10 p-1.5 rounded-xl bg-white/80 hover:bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition cursor-pointer shadow-2xs"
+                title="Close Trend View"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <MoodTrendChart
+                currentMood={currentMood}
+                energyLevel={energyLevel}
+                onSelectMood={setCurrentMood}
+                onChangeEnergy={setEnergyLevel}
+                collapsible={false}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <StudentDashboard
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            gamificationState={gamificationState}
+            onNavigateTab={setActiveTab}
+            onSelectMood={setCurrentMood}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'vault' && (
+          <MistakeVault
+            onStartFocusSprint={handleNavigateToFocusWithTask}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'recorder' && (
+          <LectureRecorder
+            onSendToFlashcards={(title) => handleNavigateToFlashcardsWithTopic(title)}
+          />
+        )}
+
+        {activeTab === 'pacing' && (
+          <AdaptivePacingAnalytics
+            onStartFocusSession={(subject, topic) => handleNavigateToFocusWithTask(`Master: ${subject} - ${topic}`)}
+          />
+        )}
+
+        {activeTab === 'flashcards' && (
+          <FlashcardsStudio
+            initialTopic={flashcardTopic}
+          />
+        )}
+
+        {activeTab === 'tasks' && (
+          <TaskPlanner
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onStartFocusOnTask={handleNavigateToFocusWithTask}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'focus' && (
+          <FocusSessions
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onSelectMood={setCurrentMood}
+            initialTask={focusTask}
+          />
+        )}
+
+        {activeTab === 'writing' && (
+          <WritingAssistant
+            onStartFocusSprint={handleNavigateToFocusWithTask}
+          />
+        )}
+
+        {activeTab === 'extracurricular' && (
+          <ExtracurricularAdvisor
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+          />
+        )}
+
+        {activeTab === 'chat' && (
+          <ChatAdvisor
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onNavigateToTab={setActiveTab}
+            onSelectMood={setCurrentMood}
+            initialPrompt={injectedPrompt}
+            onClearInitialPrompt={() => setInjectedPrompt(null)}
+          />
+        )}
+
+        {activeTab === 'schedule' && (
+          <MoodSchedulePlanner
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onSelectMood={setCurrentMood}
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+            onNavigateToJournalWithPrompt={handleNavigateToJournalWithPrompt}
+            onNavigateToFocusWithTask={handleNavigateToFocusWithTask}
+          />
+        )}
+
+        {activeTab === 'journal' && (
+          <JournalModule
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            initialPrompt={journalPrompt}
+            onClearInitialPrompt={() => setJournalPrompt(null)}
+          />
+        )}
+
+        {activeTab === 'motivation' && (
+          <MotivationRescue
+            currentMood={currentMood}
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+            onNavigateToJournalWithPrompt={handleNavigateToJournalWithPrompt}
+          />
+        )}
+      </main>
+
+      {/* Gamification Progress & Badges Modal */}
+      <GamificationModal
+        isOpen={isGamificationOpen}
+        onClose={() => setIsGamificationOpen(false)}
+        gamificationState={gamificationState}
+      />
+
+      {/* Export Data & Backup Modal */}
+      <ExportDataModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+      />
+
+      {/* Browser Push & Encouragement Notification Center */}
+      <NotificationCenterModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        currentMood={currentMood}
+        energyLevel={energyLevel}
+        onStartFocusOnTask={handleNavigateToFocusWithTask}
+      />
+
+      {/* Global In-App Toast for Dispatched Alerts */}
+      <NotificationToast
+        onStartFocusOnTask={handleNavigateToFocusWithTask}
+        onNavigateTab={setActiveTab}
+      />
+    </div>
+  );
+}
+        import React, { useState, useEffect } from 'react';
+import { Header, TabType } from './components/Header';
+import { StudentDashboard } from './components/StudentDashboard';
+import { MistakeVault } from './components/MistakeVault';
+import { LectureRecorder } from './components/LectureRecorder';
+import { AdaptivePacingAnalytics } from './components/AdaptivePacingAnalytics';
+import { FlashcardsStudio } from './components/FlashcardsStudio';
+import { TaskPlanner } from './components/TaskPlanner';
+import { FocusSessions } from './components/FocusSessions';
+import { WritingAssistant } from './components/WritingAssistant';
+import { ChatAdvisor } from './components/ChatAdvisor';
+import { MoodSchedulePlanner } from './components/MoodSchedulePlanner';
+import { JournalModule } from './components/JournalModule';
+import { ExtracurricularAdvisor } from './components/ExtracurricularAdvisor';
+import { MotivationRescue } from './components/MotivationRescue';
+import { MoodTrendChart } from './components/MoodTrendChart';
+import { GamificationModal } from './components/GamificationModal';
+import { ExportDataModal } from './components/ExportDataModal';
+import { NotificationCenterModal } from './components/NotificationCenterModal';
+import { NotificationToast } from './components/NotificationToast';
+import { OfflineBanner } from './components/PWAInstallButton';
+import { MoodType } from './types';
+import { getInitialGamificationState, GamificationState } from './utils/gamification';
+import {
+  getScheduledNotifications,
+  saveScheduledNotifications,
+  sendEncouragingNotification
+} from './utils/notificationService';
+import { X } from 'lucide-react';
+
+export default function App() {
+  const [currentMood, setCurrentMood] = useState<MoodType>(() => {
+    const saved = localStorage.getItem('aura_selected_mood');
+    return (saved as MoodType) || 'neutral';
+  });
+
+  const [energyLevel, setEnergyLevel] = useState<number>(() => {
+    const saved = localStorage.getItem('aura_energy_level');
+    return saved ? Number(saved) : 6;
+  });
+
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = localStorage.getItem('errorlens_active_tab') || localStorage.getItem('studypulse_active_tab');
+    return (saved as TabType) || 'dashboard';
+  });
+  const [showTrendChart, setShowTrendChart] = useState<boolean>(false);
+  const [injectedPrompt, setInjectedPrompt] = useState<string | null>(null);
+  const [journalPrompt, setJournalPrompt] = useState<string | null>(null);
+  const [focusTask, setFocusTask] = useState<string>('');
+  const [flashcardTopic, setFlashcardTopic] = useState<string>('');
+  const [isGamificationOpen, setIsGamificationOpen] = useState<boolean>(false);
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
+  const [gamificationState, setGamificationState] = useState<GamificationState>(getInitialGamificationState);
+
+  // Sync state to local storage
+  useEffect(() => {
+    localStorage.setItem('aura_selected_mood', currentMood);
+  }, [currentMood]);
+
+  useEffect(() => {
+    localStorage.setItem('aura_energy_level', energyLevel.toString());
+  }, [energyLevel]);
+
+  useEffect(() => {
+    localStorage.setItem('errorlens_active_tab', activeTab);
+    localStorage.setItem('studypulse_active_tab', activeTab);
+  }, [activeTab]);
+
+  // Listen for Service Worker notification click messages
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+      const handleSWMessage = (event: MessageEvent) => {
+        if (event.data?.type === 'STUDYPULSE_NOTIFICATION_CLICK' || event.data?.type === 'ERRORLENS_NOTIFICATION_CLICK') {
+          const { tab, taskTitle } = event.data;
+          if (tab) setActiveTab(tab as TabType);
+          if (taskTitle) setFocusTask(taskTitle);
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleSWMessage);
+      return () => {
+        navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+      };
+    }
+  }, []);
+
+  // Background timer to check and trigger scheduled notifications
+  useEffect(() => {
+    const checkScheduledInterval = setInterval(() => {
+      const list = getScheduledNotifications();
+      if (list.length === 0) return;
+
+      const now = Date.now();
+      let hasTriggered = false;
+      const remaining = list.filter((item) => {
+        if (!item.sent && item.scheduledTimestamp <= now) {
+          sendEncouragingNotification(item.mood, item.energyLevel, { title: item.taskTitle || '' }, {
+            customTitle: item.title,
+            customBody: item.body,
+          });
+          hasTriggered = true;
+          return false; // remove after sending
+        }
+        return true;
+      });
+
+      if (hasTriggered) {
+        saveScheduledNotifications(remaining);
+      }
+    }, 8000);
+
+    return () => clearInterval(checkScheduledInterval);
+  }, []);
+
+  // Real-time gamification listener
+  useEffect(() => {
+    const handleGamificationUpdated = (e: any) => {
+      if (e.detail) {
+        setGamificationState(e.detail);
+      } else {
+        setGamificationState(getInitialGamificationState());
+      }
+    };
+    window.addEventListener('aura_gamification_updated', handleGamificationUpdated);
+    return () => window.removeEventListener('aura_gamification_updated', handleGamificationUpdated);
+  }, []);
+
+  const handleNavigateToChatWithPrompt = (prompt: string) => {
+    setActiveTab('chat');
+    setInjectedPrompt(prompt);
+  };
+
+  const handleNavigateToJournalWithPrompt = (prompt: string) => {
+    setJournalPrompt(prompt);
+    setActiveTab('journal');
+  };
+
+  const handleNavigateToFocusWithTask = (task: string) => {
+    setFocusTask(task);
+    setActiveTab('focus');
+  };
+
+  const handleNavigateToFlashcardsWithTopic = (topic: string) => {
+    setFlashcardTopic(topic);
+    setActiveTab('flashcards');
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col text-slate-800 selection:bg-blue-100 selection:text-blue-900 relative overflow-x-hidden bg-slate-50/50">
+      {/* Ambient background glow effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute top-[-8%] left-[-4%] w-[45vw] h-[45vw] rounded-full bg-blue-100/40 blur-3xl" />
+        <div className="absolute top-[10%] right-[-5%] w-[40vw] h-[40vw] rounded-full bg-slate-200/50 blur-3xl" />
+        <div className="absolute bottom-[-10%] left-[10%] w-[45vw] h-[45vw] rounded-full bg-emerald-100/30 blur-3xl" />
+      </div>
+
+      <OfflineBanner />
+
+      <Header
+        currentMood={currentMood}
+        onSelectMood={setCurrentMood}
+        energyLevel={energyLevel}
+        onChangeEnergy={setEnergyLevel}
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        showTrendChart={showTrendChart}
+        onToggleTrendChart={() => setShowTrendChart((prev) => !prev)}
+        onOpenGamification={() => setIsGamificationOpen(true)}
+        onOpenExport={() => setIsExportOpen(true)}
+        onOpenNotifications={() => setIsNotificationsOpen(true)}
+      />
+
+      <main className="flex-1 pb-10">
+        {/* Global Expandable 7-Day Trend Banner */}
+        {showTrendChart && (
+          <div className="max-w-4xl mx-auto px-2 sm:px-4 pt-4 pb-2 animate-in fade-in slide-in-from-top-2 duration-200 relative">
+            <div className="relative">
+              <button
+                onClick={() => setShowTrendChart(false)}
+                className="absolute top-4 right-4 z-10 p-1.5 rounded-xl bg-white/80 hover:bg-white border border-slate-200 text-slate-500 hover:text-slate-800 transition cursor-pointer shadow-2xs"
+                title="Close Trend View"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <MoodTrendChart
+                currentMood={currentMood}
+                energyLevel={energyLevel}
+                onSelectMood={setCurrentMood}
+                onChangeEnergy={setEnergyLevel}
+                collapsible={false}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'dashboard' && (
+          <StudentDashboard
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            gamificationState={gamificationState}
+            onNavigateTab={setActiveTab}
+            onSelectMood={setCurrentMood}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'vault' && (
+          <MistakeVault
+            onStartFocusSprint={handleNavigateToFocusWithTask}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'recorder' && (
+          <LectureRecorder
+            onSendToFlashcards={(title) => handleNavigateToFlashcardsWithTopic(title)}
+          />
+        )}
+
+        {activeTab === 'pacing' && (
+          <AdaptivePacingAnalytics
+            onStartFocusSession={(subject, topic) => handleNavigateToFocusWithTask(`Master: ${subject} - ${topic}`)}
+          />
+        )}
+
+        {activeTab === 'flashcards' && (
+          <FlashcardsStudio
+            initialTopic={flashcardTopic}
+          />
+        )}
+
+        {activeTab === 'tasks' && (
+          <TaskPlanner
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onStartFocusOnTask={handleNavigateToFocusWithTask}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        )}
+
+        {activeTab === 'focus' && (
+          <FocusSessions
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onSelectMood={setCurrentMood}
+            initialTask={focusTask}
+          />
+        )}
+
+        {activeTab === 'writing' && (
+          <WritingAssistant
+            onStartFocusSprint={handleNavigateToFocusWithTask}
+          />
+        )}
+
+        {activeTab === 'extracurricular' && (
+          <ExtracurricularAdvisor
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+          />
+        )}
+
+        {activeTab === 'chat' && (
+          <ChatAdvisor
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onNavigateToTab={setActiveTab}
+            onSelectMood={setCurrentMood}
+            initialPrompt={injectedPrompt}
+            onClearInitialPrompt={() => setInjectedPrompt(null)}
+          />
+        )}
+
+        {activeTab === 'schedule' && (
+          <MoodSchedulePlanner
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            onSelectMood={setCurrentMood}
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+            onNavigateToJournalWithPrompt={handleNavigateToJournalWithPrompt}
+            onNavigateToFocusWithTask={handleNavigateToFocusWithTask}
+          />
+        )}
+
+        {activeTab === 'journal' && (
+          <JournalModule
+            currentMood={currentMood}
+            energyLevel={energyLevel}
+            initialPrompt={journalPrompt}
+            onClearInitialPrompt={() => setJournalPrompt(null)}
+          />
+        )}
+
+        {activeTab === 'motivation' && (
+          <MotivationRescue
+            currentMood={currentMood}
+            onNavigateToChatWithPrompt={handleNavigateToChatWithPrompt}
+            onNavigateToJournalWithPrompt={handleNavigateToJournalWithPrompt}
+          />
+        )}
+      </main>
+
+      {/* Gamification Progress & Badges Modal */}
+      <GamificationModal
+        isOpen={isGamificationOpen}
+        onClose={() => setIsGamificationOpen(false)}
+        gamificationState={gamificationState}
+      />
+
+      {/* Export Data & Backup Modal */}
+      <ExportDataModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+      />
+
+      {/* Browser Push & Encouragement Notification Center */}
+      <NotificationCenterModal
+        isOpen={isNotificationsOpen}
+        onClose={() => setIsNotificationsOpen(false)}
+        currentMood={currentMood}
+        energyLevel={energyLevel}
+        onStartFocusOnTask={handleNavigateToFocusWithTask}
+      />
+
+      {/* Global In-App Toast for Dispatched Alerts */}
+      <NotificationToast
+        onStartFocusOnTask={handleNavigateToFocusWithTask}
+        onNavigateTab={setActiveTab}
+      />
+    </div>
+  );
+}
+        {
+  "name": "krestal-ai",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx server.ts",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "start": "node dist/server.cjs",
+    "clean": "rm -rf dist server.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@google/genai": "^2.4.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@vitejs/plugin-react": "^5.0.4",
+    "canvas-confetti": "^1.9.4",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "lucide-react": "^0.546.0",
+    "motion": "^12.23.24",
+    "react": "^19.0.1",
+    "react-dom": "^19.0.1",
+    "react-markdown": "^10.1.0",
+    "recharts": "^3.10.1",
+    "vite": "^6.2.3"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.14.0",
+    "autoprefixer": "^10.4.21",
+    "esbuild": "^0.25.0",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^4.1.14",
+    "tsx": "^4.21.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.3",
+    "vite-plugin-pwa": "^1.3.0"
+  }
+}
